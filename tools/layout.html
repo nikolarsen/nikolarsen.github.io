@@ -9,7 +9,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
-<link rel="stylesheet" href="../assets/style.css?v=20261125j">
+<link rel="stylesheet" href="../assets/style.css?v=20261125k">
 <style>
   .tp { --tp-accent: #2f6fe0; --tp-accent-2: #4d86ea; --tp-canvas: #1a1f24; }
   :root[data-theme="dark"] .tp { --tp-accent: #6f9bff; --tp-accent-2: #94b4ff; }
@@ -113,7 +113,7 @@
 
       <div class="tp-result">
         <div class="tp-out"><span id="out-label-1">Промежуток</span><b id="out-main">—</b></div>
-        <div class="tp-out"><b id="out-pitch">—</b></div>
+        <div class="tp-out"><span>Шаг по осям</span><b id="out-pitch">—</b></div>
       </div>
       <div class="tp-meta" id="out-check"></div>
       <div class="tp-meta tp-meta--axes" id="out-axes"></div>
@@ -154,7 +154,7 @@
   </div>
 </main>
 
-<script src="../assets/app.js?v=20261125j" defer></script>
+<script src="../assets/app.js?v=20261125k" defer></script>
 <script>
 (function(){
   "use strict";
@@ -559,8 +559,10 @@
     var rect = cv.getBoundingClientRect();
     var W = Math.max(1, Math.round(rect.width));
     var H = Math.max(1, Math.round(rect.height));
-    cv.width = W * dpr;
-    cv.height = H * dpr;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+    }
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,W,H);
 
