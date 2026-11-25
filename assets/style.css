@@ -147,7 +147,7 @@ h1 em { font-style: normal; color: #f0803a; }
 .hero__stats b { display: block; font-size: clamp(17px, 4.6vw, 20px); white-space: nowrap; color: var(--hero-text); font-weight: 650; letter-spacing: -0.01em; }
 
 /* ── секции ──────────────────────────────────────────── */
-section { padding: 54px 0 6px; }
+main > section:not(.hero) { padding: 54px 0 6px; }
 #tools { padding: 26px 0 6px; }
 .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
 .sec-head h2 { font-size: clamp(21px, 3.4vw, 27px); letter-spacing: -0.02em; margin: 0; font-weight: 680; }
