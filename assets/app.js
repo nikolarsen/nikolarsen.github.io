@@ -43,8 +43,11 @@
       if (promptEvent) {
         promptEvent.prompt();
         promptEvent.userChoice.finally(function () { promptEvent = null; });
+      } else if (navigator.share) {
+        // iPhone: пробуем открыть системный лист «Поделиться» (там бывает «На экран Домой»)
+        navigator.share({ title: document.title, url: location.href }).catch(function () {});
+        showToast('Если «На экран Домой» нет — кнопка «Поделиться» в Safari');
       } else {
-        // Safari на iPhone не умеет ставить приложение по кнопке — показываем подсказку
         var el = document.getElementById('install');
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         showToast('Safari: «Поделиться» → «На экран Домой»');
