@@ -14,7 +14,7 @@
     if (meta) meta.setAttribute('content', t === 'dark' ? '#0a0f15' : '#0d141d');
   }
 
-  apply(saved() || (systemDark() ? 'dark' : 'light'));
+  apply(saved() || 'dark');   // сайт тёмный всегда, светлую можно включить кнопкой
 
   var btn = document.getElementById('themeBtn');
   if (btn) {
@@ -44,15 +44,10 @@
         promptEvent.prompt();
         promptEvent.userChoice.finally(function () { promptEvent = null; });
       } else {
-        // Safari на iPhone не даёт программной установки — показываем инструкцию
+        // Safari на iPhone не умеет ставить приложение по кнопке — показываем подсказку
         var el = document.getElementById('install');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.animate(
-            [{ transform: 'scale(1)' }, { transform: 'scale(1.012)' }, { transform: 'scale(1)' }],
-            { duration: 620, easing: 'ease-in-out' }
-          );
-        }
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('Safari: «Поделиться» → «На экран Домой»');
       }
     });
 
@@ -60,6 +55,22 @@
       installBtn.hidden = true;
       promptEvent = null;
     });
+  }
+
+  /* ── всплывающая подсказка ── */
+  var toastTimer = null;
+  function showToast(text) {
+    var t = document.getElementById('toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add('toast--show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('toast--show'); }, 4200);
   }
 
   /* ── год в подвале ── */

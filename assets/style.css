@@ -63,6 +63,7 @@ a { color: inherit; text-decoration: none; }
 /* ── шапка ───────────────────────────────────────────── */
 .top {
   position: sticky; top: 0; z-index: 30;
+  padding-top: env(safe-area-inset-top);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
@@ -280,7 +281,7 @@ body.tool-page .top { position: static; flex: 0 0 auto; }
 body.tool-page .top__in { height: 54px; }
 body.tool-page main.tool {
   flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
-  padding-top: 10px; padding-bottom: 10px;
+  padding-top: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 body.tool-page .panel {
   flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;
@@ -314,4 +315,23 @@ body.tool-page .tp-field input { font-size: 16px; }
   body.tool-page .panel { padding: 18px; max-width: 1000px; width: 100%; margin: 0 auto; }
   body.tool-page .tp-canvas { min-height: 200px; }
   body.tool-page .tp { max-width: 1000px; }
+}
+
+/* всплывающая подсказка */
+.toast {
+  position: fixed; left: 50%; z-index: 60;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 14px); opacity: 0; pointer-events: none;
+  max-width: calc(100% - 32px);
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 16px; font-size: 13.5px; line-height: 1.35; text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.toast--show { opacity: 1; transform: translate(-50%, 0); }
+
+/* отступ под нижнюю полосу телефона на обычных страницах */
+@supports (padding: max(0px)) {
+  footer { padding-bottom: max(40px, calc(28px + env(safe-area-inset-bottom))); }
 }

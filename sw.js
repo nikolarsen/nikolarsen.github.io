@@ -1,6 +1,6 @@
 /* Service worker: кэш «сначала своё, потом обновление в фоне».
    Меняете файлы на сайте — поднимите VERSION, старая копия заменится при следующем открытии. */
-const VERSION = 'v10-2026-11-25';
+const VERSION = 'v11-2026-11-25';
 const CACHE = 'stroy-' + VERSION;
 
 const SHELL = [
@@ -9,6 +9,11 @@ const SHELL = [
   'assets/style.css',
   'assets/app.js',
   'manifest.webmanifest',
+  'tools/manifest-layout.webmanifest',
+  'tools/manifest-tile.webmanifest',
+  'tools/manifest-wallpaper.webmanifest',
+  'tools/manifest-concrete.webmanifest',
+  'tools/manifest-paint.webmanifest',
   'assets/icons/icon-192.png',
   'assets/icons/icon-512.png',
   'assets/icons/apple-touch-icon.png',
