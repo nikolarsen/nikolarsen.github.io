@@ -9,7 +9,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
-<link rel="stylesheet" href="../assets/style.css?v=20261125h">
+<link rel="stylesheet" href="../assets/style.css?v=20261125g">
 </head>
 <body class="tool-page">
 
@@ -76,16 +76,17 @@
     <div class="result">
       <div class="result__head"><b>Результат</b></div>
       <div class="result__grid">
-        <div class="out"><b id="oPcs">—</b></div>
-        <div class="out"><b id="oM2">—</b></div>
-        <div class="out"><b id="oGlue">—</b></div>
-        <div class="out"><b id="oGrout">—</b></div>
+        <div class="out"><span>Плитка, шт</span><b id="oPcs">—</b></div>
+        <div class="out"><span>Плитка к покупке, м²</span><b id="oM2">—</b></div>
+        <div class="out"><span>Клей</span><b id="oGlue">—</b></div>
+        <div class="out"><span>Затирка</span><b id="oGrout">—</b></div>
       </div>
+      <p class="note">Клей — по среднему расходу выбранной гребёнки. Затирка — по формуле (A+B)/(A·B)·шов·толщина·1,6; плотность 1,6 кг/дм³, для эпоксидной уточняйте у продавца.</p>
     </div>
   </div>
 </main>
 
-<script src="../assets/app.js?v=20261125h" defer></script>
+<script src="../assets/app.js?v=20261125g" defer></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };

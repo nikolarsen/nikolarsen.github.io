@@ -9,7 +9,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
-<link rel="stylesheet" href="../assets/style.css?v=20261125h">
+<link rel="stylesheet" href="../assets/style.css?v=20261125g">
 </head>
 <body class="tool-page">
 
@@ -84,16 +84,17 @@
     <div class="result">
       <div class="result__head"><b>Результат</b></div>
       <div class="result__grid">
-        <div class="out"><b id="oRolls">—</b></div>
-        <div class="out"><b id="oStrips">—</b></div>
-        <div class="out"><b id="oPerRoll">—</b></div>
-        <div class="out"><b id="oArea">—</b></div>
+        <div class="out"><span>Рулонов</span><b id="oRolls">—</b></div>
+        <div class="out"><span>Полос всего</span><b id="oStrips">—</b></div>
+        <div class="out"><span>Полос из рулона</span><b id="oPerRoll">—</b></div>
+        <div class="out"><span>Площадь стен</span><b id="oArea">—</b></div>
       </div>
+      <p class="note">Полоса режется по высоте с округлением до раппорта. Окна и двери вычитаются из площади, но полосы над ними всё равно нужны — поэтому итог берётся по полосам, а не по площади.</p>
     </div>
   </div>
 </main>
 
-<script src="../assets/app.js?v=20261125h" defer></script>
+<script src="../assets/app.js?v=20261125g" defer></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
