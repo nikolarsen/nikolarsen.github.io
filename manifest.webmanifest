@@ -19,6 +19,7 @@
     { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
+    { "name": "Раскладка и шаг по осям", "short_name": "Раскладка", "url": "./tools/layout.html" },
     { "name": "Плитка и клей", "short_name": "Плитка", "url": "./tools/tile.html" },
     { "name": "Обои", "short_name": "Обои", "url": "./tools/wallpaper.html" },
     { "name": "Стяжка и бетон", "short_name": "Бетон", "url": "./tools/concrete.html" },

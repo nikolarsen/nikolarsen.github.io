@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Раскладка и шаг по осям — Строительные web-инструменты</title>
+<meta name="description" content="Раскладка объектов по стене: равные промежутки, количество по заданному шагу, точный промежуток с остатком. Схема и оси в сантиметрах.">
+<meta name="theme-color" content="#0d141d">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .tp { --tp-accent: #2f6fe0; --tp-accent-2: #4d86ea; --tp-canvas: #1a1f24; }
+  :root[data-theme="dark"] .tp { --tp-accent: #6f9bff; --tp-accent-2: #94b4ff; }
+
+  .tp-body { display: flex; flex-direction: column; gap: 12px; }
+
+  .tp-canvas {
+    background: var(--tp-canvas);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    height: clamp(230px, 38vh, 330px);
+    position: relative; overflow: hidden;
+  }
+  .tp-canvas canvas { display: block; width: 100%; height: 100%; }
+
+  .tp-result { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tp-out {
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 11px 13px; min-width: 0;
+  }
+  .tp-out span { display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; }
+  .tp-out b {
+    display: block; font-size: 23px; font-weight: 700; line-height: 1.15;
+    color: var(--tp-accent); font-variant-numeric: tabular-nums;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tp-out b i { font-style: normal; font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 3px; }
+  .tp-meta {
+    font-size: 12px; color: var(--muted); line-height: 1.45;
+    font-variant-numeric: tabular-nums; margin-top: 8px;
+  }
+  .tp-meta--axes { margin-top: 3px; }
+  .error { color: #e05555; font-weight: 600; }
+
+  .tp-seg {
+    display: flex; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 11px; padding: 3px; gap: 3px;
+  }
+  .tp-seg button {
+    flex: 1; background: transparent; border: 0; border-radius: 8px;
+    color: var(--muted); font-family: inherit; font-size: 12.5px; font-weight: 550;
+    padding: 10px 6px; line-height: 1.2; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tp-seg button.active { background: var(--tp-accent); color: #fff; }
+
+  .tp-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tp-field {
+    position: relative; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 9px 28px 9px 11px; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  }
+  .tp-field label { font-size: 11px; color: var(--muted); font-weight: 500; line-height: 1.2; }
+  .tp-field input {
+    background: transparent; border: 0; outline: none; padding: 0;
+    color: var(--text); font-family: inherit; font-size: 17px; font-weight: 600; width: 100%;
+    -webkit-user-select: text; user-select: text;
+    -webkit-appearance: none; appearance: none;
+  }
+  .tp-field input::-webkit-outer-spin-button,
+  .tp-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .tp-clear {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 19px; height: 19px; border-radius: 50%; border: 0; padding: 0;
+    background: var(--line); color: var(--muted); font-family: inherit; font-size: 12px;
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .tp-clear:active { background: rgba(224,85,85,.25); color: var(--text); }
+
+  @media (max-width: 480px) {
+    .tp-field { padding: 8px 24px 8px 9px; }
+    .tp-field input { font-size: 16px; }
+    .tp-out b { font-size: 20px; }
+    .tp-seg button { font-size: 11.5px; padding: 9px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top__in">
+    <a class="brand" href="../">
+      <img src="../assets/icons/icon-192.png" alt="" width="30" height="30">
+      <span>Строй-инструменты<small>web · PWA</small></span>
+    </a>
+    <nav class="top__nav">
+      <a class="top__link" href="../#tools">Инструменты</a>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Переключить тему" title="Тема">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap tool tp">
+  <a class="tool__back" href="../"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Все инструменты</a>
+  <div class="tool__head">
+    <h1>Раскладка и шаг по осям</h1>
+    <p>Объекты по стене или потолку: равные промежутки, количество под заданный шаг, точный шаг с остатком.</p>
+  </div>
+
+  <div class="panel">
+    <div class="tp-body">
+      <div class="tp-canvas"><canvas id="cv"></canvas></div>
+
+      <div class="tp-result">
+        <div class="tp-out"><span id="out-label-1">Промежуток</span><b id="out-main">—</b></div>
+        <div class="tp-out"><span>Шаг по осям</span><b id="out-pitch">—</b></div>
+      </div>
+      <div class="tp-meta" id="out-check"></div>
+      <div class="tp-meta tp-meta--axes" id="out-axes"></div>
+
+      <div class="tp-seg" id="calc-mode">
+        <button data-calc="gap" class="active">Промежуток</button>
+        <button data-calc="count">Количество</button>
+        <button data-calc="exact">Точный шаг</button>
+      </div>
+      <div class="tp-seg" id="mode">
+        <button data-mode="inside" class="active">Объекты по краям</button>
+        <button data-mode="edges">Отступы по краям</button>
+      </div>
+      <div class="tp-seg" id="bounds">
+        <button data-bounds="total" class="active">Общая длина участка</button>
+        <button data-bounds="between">Между крайними кромками</button>
+      </div>
+
+      <div class="tp-inputs">
+        <div class="tp-field">
+          <label id="label-1">Длина участка, см</label>
+          <input id="in-total" type="text" inputmode="decimal" value="200">
+          <button type="button" class="tp-clear clear-btn" data-target="in-total" aria-label="Очистить">×</button>
+        </div>
+        <div class="tp-field">
+          <label>Ширина объекта, см</label>
+          <input id="in-width" type="text" inputmode="decimal" value="10">
+          <button type="button" class="tp-clear clear-btn" data-target="in-width" aria-label="Очистить">×</button>
+        </div>
+        <div class="tp-field">
+          <label id="label-3">Количество, шт</label>
+          <input id="in-count" type="text" inputmode="numeric" value="8">
+          <input id="in-gap" type="text" inputmode="decimal" value="60" style="display:none">
+          <button type="button" class="tp-clear clear-btn" id="clear-3" data-target="in-count" aria-label="Очистить">×</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../assets/app.js" defer></script>
+<script>
+(function(){
+  "use strict";
+
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var inTotal = document.getElementById('in-total');
+  var inWidth = document.getElementById('in-width');
+  var inCount = document.getElementById('in-count');
+  var inGap   = document.getElementById('in-gap');
+  var label1  = document.getElementById('label-1');
+  var label3  = document.getElementById('label-3');
+  var clear3  = document.getElementById('clear-3');
+
+  var outLabel1 = document.getElementById('out-label-1');
+  var outMain   = document.getElementById('out-main');
+  var outPitch  = document.getElementById('out-pitch');
+  var outCheck  = document.getElementById('out-check');
+  var outAxes   = document.getElementById('out-axes');
+
+  var calcSeg   = document.getElementById('calc-mode');
+  var modeEl    = document.getElementById('mode');
+  var boundsEl  = document.getElementById('bounds');
+
+  var calcMode   = 'gap';
+  var edgeMode   = 'inside';
+  var boundsMode = 'total';
+  var lastError  = '';
+
+  function parseNum(s){
+    var v = parseFloat(String(s).replace(',', '.'));
+    return isFinite(v) ? v : NaN;
+  }
+  function fmt(n){
+    if(!isFinite(n)) return '—';
+    return String(Math.round(n * 100) / 100).replace('.', ',');
+  }
+  function roundRect(c,x,y,w,h,r){
+    r = Math.min(r, w/2, h/2);
+    c.beginPath();
+    c.moveTo(x+r,y);
+    c.arcTo(x+w,y,x+w,y+h,r);
+    c.arcTo(x+w,y+h,x,y+h,r);
+    c.arcTo(x,y+h,x,y,r);
+    c.arcTo(x,y,x+w,y,r);
+    c.closePath();
+  }
+  function drawArrow(c,x,y,dir,color){
+    var s = 4.5;
+    c.fillStyle = color || '#8a929b';
+    c.beginPath();
+    c.moveTo(x,y);
+    c.lineTo(x + dir*s, y - 2.8);
+    c.lineTo(x + dir*s, y + 2.8);
+    c.closePath();
+    c.fill();
+  }
+
+  function applyModeVisibility(){
+    if(calcMode === 'gap'){
+      label3.textContent = 'Количество, шт';
+      inCount.style.display = '';
+      inGap.style.display = 'none';
+      clear3.dataset.target = 'in-count';
+    } else {
+      label3.textContent = 'Промежуток, см';
+      inCount.style.display = 'none';
+      inGap.style.display = '';
+      clear3.dataset.target = 'in-gap';
+    }
+    modeEl.style.display = (calcMode === 'exact') ? 'none' : '';
+    boundsEl.style.display = '';
+
+    if(calcMode === 'exact'){
+      label1.textContent = (boundsMode === 'between')
+        ? 'Между внутр. кромками, см'
+        : 'Общая длина, см';
+    } else if(edgeMode === 'edges'){
+      label1.textContent = (boundsMode === 'between')
+        ? 'Между крайними кромками, см'
+        : 'Общая длина участка, см';
+    } else {
+      label1.textContent = (boundsMode === 'between')
+        ? 'Между внутр. кромками, см'
+        : 'Общая длина участка, см';
+    }
+  }
+
+  calcSeg.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    calcMode = btn.dataset.calc;
+    var kids = calcSeg.children;
+    for(var i=0;i<kids.length;i++) kids[i].classList.toggle('active', kids[i] === btn);
+    applyModeVisibility();
+    update();
+  });
+  modeEl.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    edgeMode = btn.dataset.mode;
+    var kids = modeEl.children;
+    for(var i=0;i<kids.length;i++) kids[i].classList.toggle('active', kids[i] === btn);
+    applyModeVisibility();
+    update();
+  });
+  boundsEl.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    boundsMode = btn.dataset.bounds;
+    var kids = boundsEl.children;
+    for(var i=0;i<kids.length;i++) kids[i].classList.toggle('active', kids[i] === btn);
+    applyModeVisibility();
+    update();
+  });
+  document.querySelectorAll('.clear-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      var t = document.getElementById(btn.dataset.target);
+      if(!t) return;
+      t.value = '';
+      t.focus();
+      update();
+    });
+  });
+
+  function buildLayout(total, width, count, gap, edgeMode){
+    var objStart = [];
+    var gaps = [];
+    var x = 0;
+    if(edgeMode === 'edges'){
+      gaps.push({start:0, len:gap, type:'std'});
+      x = gap;
+    }
+    for(var i=0;i<count;i++){
+      objStart.push(x);
+      x += width;
+      if(i < count-1){
+        gaps.push({start:x, len:gap, type:'std'});
+        x += gap;
+      }
+    }
+    if(edgeMode === 'edges'){
+      gaps.push({start:x, len:gap, type:'std'});
+    }
+    return {objStart: objStart, gaps: gaps};
+  }
+
+  function solve(){
+    var inputLen = parseNum(inTotal.value);
+    var width = parseNum(inWidth.value);
+    if(!isFinite(inputLen) || !isFinite(width)) return {ok:false, msg:'Введите длину и ширину'};
+    if(inputLen <= 0 || width <= 0) return {ok:false, msg:'Значения должны быть > 0'};
+
+    var bMode = boundsMode;
+    var count = 0, gap = 0, total = 0, requestedGap = null;
+    var objStartCm = [], gapCm = [];
+
+    if(calcMode === 'gap'){
+      count = Math.round(parseNum(inCount.value));
+      if(!isFinite(count)) return {ok:false, msg:'Введите количество'};
+      if(count < 1) return {ok:false, msg:'Количество ≥ 1'};
+
+      if(bMode === 'total'){
+        var gc = (edgeMode === 'edges') ? count + 1 : count - 1;
+        if(gc <= 0) return {ok:false, msg:'Нужно ≥ 2 объектов'};
+        var free = inputLen - count * width;
+        if(free < 0) return {ok:false, msg:'Объекты не помещаются'};
+        gap = free / gc;
+        total = inputLen;
+      } else {
+        if(edgeMode === 'edges'){
+          if(count < 2) return {ok:false, msg:'Нужно ≥ 2 объектов'};
+          var free1 = inputLen - count * width;
+          if(free1 < 0) return {ok:false, msg:'Объекты не помещаются'};
+          gap = free1 / (count - 1);
+          total = inputLen + 2 * gap;
+        } else {
+          if(count < 2) return {ok:false, msg:'Нужно ≥ 2 объектов'};
+          total = inputLen + 2 * width;
+          var free2 = total - count * width;
+          if(free2 < 0) return {ok:false, msg:'Объекты не помещаются'};
+          gap = free2 / (count - 1);
+        }
+      }
+
+      var L1 = buildLayout(total, width, count, gap, edgeMode);
+      objStartCm = L1.objStart;
+      gapCm = L1.gaps;
+    }
+    else if(calcMode === 'count'){
+      requestedGap = parseNum(inGap.value);
+      if(!isFinite(requestedGap)) return {ok:false, msg:'Введите промежуток'};
+      if(requestedGap <= 0) return {ok:false, msg:'Промежуток > 0'};
+
+      var Nf;
+      if(bMode === 'total'){
+        Nf = (edgeMode === 'edges')
+          ? (inputLen - requestedGap) / (width + requestedGap)
+          : (inputLen + requestedGap) / (width + requestedGap);
+      } else {
+        if(edgeMode === 'edges'){
+          Nf = (inputLen + requestedGap) / (width + requestedGap);
+        } else {
+          total = inputLen + 2 * width;
+          Nf = (total + requestedGap) / (width + requestedGap);
+        }
+      }
+      if(Nf < 1) return {ok:false, msg:'Не помещается ни один объект'};
+      count = Math.round(Nf);
+      if(count < 1) count = 1;
+
+      if(bMode === 'total'){
+        var gc2 = (edgeMode === 'edges') ? count + 1 : count - 1;
+        gap = gc2 > 0 ? (inputLen - count * width) / gc2 : 0;
+        total = inputLen;
+      } else {
+        if(edgeMode === 'edges'){
+          if(count < 2){ gap = 0; total = count * width; }
+          else { gap = (inputLen - count * width) / (count - 1); total = inputLen + 2 * gap; }
+        } else {
+          if(count < 2){ gap = 0; total = count * width; }
+          else { gap = (total - count * width) / (count - 1); }
+        }
+      }
+      if(gap < 0) return {ok:false, msg:'При таком промежутке не помещается'};
+
+      var L2 = buildLayout(total, width, count, gap, edgeMode);
+      objStartCm = L2.objStart;
+      gapCm = L2.gaps;
+    }
+    else { // exact
+      requestedGap = parseNum(inGap.value);
+      if(!isFinite(requestedGap)) return {ok:false, msg:'Введите промежуток'};
+      if(requestedGap <= 0) return {ok:false, msg:'Промежуток > 0'};
+      gap = requestedGap;
+
+      total = (bMode === 'between') ? (inputLen + 2 * width) : inputLen;
+      if(total < width) return {ok:false, msg:'Объект не помещается'};
+
+      if(total < 2 * width){
+        count = 1;
+        objStartCm.push((total - width) / 2);
+      } else {
+        var q = Math.floor((total - 2 * width) / (width + gap) + 1e-9);
+        if(q < 0) q = 0;
+        count = 2 + q;
+        for(var a=0;a<count-1;a++) objStartCm.push(a * (width + gap));
+        objStartCm.push(total - width);
+        for(var b=0;b<count-1;b++){
+          var s = objStartCm[b] + width;
+          var e = objStartCm[b+1];
+          gapCm.push({
+            start: s,
+            len: e - s,
+            type: (b === count-2) ? 'rem' : 'std'
+          });
+        }
+      }
+    }
+
+    var pitch = width + gap;
+    var axisCm = [];
+    for(var k=0;k<objStartCm.length;k++) axisCm.push(objStartCm[k] + width/2);
+    var lastGap = null;
+    if(calcMode === 'exact' && count >= 2){
+      lastGap = objStartCm[count-1] - (objStartCm[count-2] + width);
+    }
+
+    return {
+      ok:true,
+      inputLen: inputLen, total: total, width: width, count: count, gap: gap,
+      pitch: pitch, objStartCm: objStartCm, gapCm: gapCm, axisCm: axisCm,
+      axesSpan: (count > 1) ? (axisCm[count-1] - axisCm[0]) : 0,
+      requestedGap: requestedGap,
+      lastGap: lastGap,
+      exact: (calcMode === 'exact'),
+      edgeMode: edgeMode,
+      bMode: bMode
+    };
+  }
+
+  var drawScheduled = false;
+  function requestDraw(){
+    if(drawScheduled) return;
+    drawScheduled = true;
+    requestAnimationFrame(function(){
+      drawScheduled = false;
+      try { draw(); } catch(err){ lastError = String(err && err.message || err); drawError(); }
+    });
+  }
+  function drawError(){
+    var dpr = window.devicePixelRatio || 1;
+    var rect = cv.getBoundingClientRect();
+    cv.width = Math.max(1, rect.width) * dpr;
+    cv.height = Math.max(1, rect.height) * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,rect.width,rect.height);
+    ctx.fillStyle = '#ef5b5b';
+    ctx.font = '600 12px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Ошибка: ' + lastError, rect.width/2, rect.height/2);
+  }
+
+  function bModeText(r){
+    if(r.bMode !== 'between') return '';
+    if(r.edgeMode === 'edges' && !r.exact){
+      return '  ·  между крайними ' + fmt(r.inputLen) + ' см';
+    }
+    return '  ·  между внутр. кромками ' + fmt(r.inputLen) + ' см';
+  }
+
+  function update(){
+    try {
+      var r = solve();
+      outLabel1.textContent = (calcMode === 'gap') ? 'Промежуток' : 'Количество';
+
+      if(!r.ok){
+        outMain.innerHTML = '<span class="error">' + r.msg + '</span>';
+        outPitch.textContent = '—';
+        outCheck.textContent = '';
+        outAxes.textContent = '';
+        requestDraw();
+        return;
+      }
+
+      if(calcMode === 'gap'){
+        outMain.innerHTML = fmt(r.gap) + ' <small>см</small>';
+      } else {
+        outMain.innerHTML = String(r.count) + ' <small>шт</small>';
+      }
+      outPitch.innerHTML = fmt(r.pitch) + ' <small>см</small>';
+
+      var s;
+      if(r.exact){
+        if(r.count === 1){
+          s = '1 × ' + fmt(r.width) + ' = ' + fmt(r.width) +
+              ' см  ·  по центру ' + fmt(r.total) + ' см';
+        } else if(r.count === 2){
+          s = '2 × ' + fmt(r.width) + ' + ' + fmt(r.lastGap) +
+              ' = ' + fmt(r.total) + ' см';
+          s += '  ·  промежуток ' + fmt(r.lastGap) + ' см';
+        } else {
+          s = r.count + ' × ' + fmt(r.width) +
+              ' + ' + (r.count-2) + ' × ' + fmt(r.gap) +
+              ' + ' + fmt(r.lastGap) +
+              ' = ' + fmt(r.total) + ' см';
+          s += '  ·  последний промежуток ' + fmt(r.lastGap) + ' см';
+        }
+      } else {
+        var gc = (r.edgeMode === 'edges') ? r.count + 1 : r.count - 1;
+        s = r.count + ' × ' + fmt(r.width) +
+            ' + ' + gc + ' × ' + fmt(r.gap) +
+            ' = ' + fmt(r.total) + ' см';
+        if(r.requestedGap !== null){
+          s += '  ·  задан ' + fmt(r.requestedGap) + ' см';
+          if(Math.abs(r.gap - r.requestedGap) > 0.01){
+            s += ' (факт ' + fmt(r.gap) + ')';
+            var alt = (r.gap > r.requestedGap) ? r.count - 1 : r.count + 1;
+            if(alt >= 1){
+              var altGc = (r.edgeMode === 'edges') ? alt + 1 : alt - 1;
+              if(altGc > 0){
+                var altGap = (r.total - alt*r.width) / altGc;
+                if(altGap > 0) s += '  ·  ' + alt + ' шт → ' + fmt(altGap) + ' см';
+              }
+            }
+          } else {
+            s += ' (точно)';
+          }
+        }
+      }
+
+      s += bModeText(r);
+
+      if(r.count > 1){
+        s += '  ·  крайние оси ' + fmt(r.axisCm[0]) + '…' + fmt(r.axisCm[r.count-1]) +
+             ' (' + fmt(r.axesSpan) + ' см)';
+      } else if(r.count === 1){
+        s += '  ·  ось ' + fmt(r.axisCm[0]);
+      }
+      outCheck.textContent = s;
+
+      if(r.count <= 8){
+        outAxes.textContent = 'Оси: ' + r.axisCm.map(fmt).join(' · ');
+      } else {
+        outAxes.textContent = 'Оси: ' + fmt(r.axisCm[0]) + ' … ' + fmt(r.axisCm[r.count-1]) +
+          '  (шаг ' + fmt(r.pitch) + ' см)';
+      }
+
+      lastError = '';
+      requestDraw();
+    } catch(err){
+      lastError = String(err && err.message || err);
+      outMain.innerHTML = '<span class="error">' + lastError + '</span>';
+      drawError();
+    }
+  }
+
+  function draw(){
+    var dpr = window.devicePixelRatio || 1;
+    var rect = cv.getBoundingClientRect();
+    var W = Math.max(1, Math.round(rect.width));
+    var H = Math.max(1, Math.round(rect.height));
+    cv.width = W * dpr;
+    cv.height = H * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+
+    var r = solve();
+    if(!r.ok){
+      ctx.fillStyle = '#8a929b';
+      ctx.font = '500 12px -apple-system, system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(r.msg, W/2, H/2);
+      return;
+    }
+
+    var padL = 14, padR = 14;
+    var availW = W - padL - padR;
+    var scale = availW / r.total;
+    var objW = r.width * scale;
+    var pitchPx = r.pitch * scale;
+
+    var gapDimY   = 14;
+    var axisNumY  = 28;
+    var objTop    = 38;
+    var totalDimY = H - 12;
+    var pitchDimY = totalDimY - 30;
+    var objBot    = pitchDimY - 34;
+    if(objBot < objTop + 20) objBot = objTop + 20;
+
+    ctx.fillStyle = 'rgba(91,141,239,0.06)';
+    roundRect(ctx, padL, objTop - 6, availW, (objBot - objTop) + 12, 6);
+    ctx.fill();
+
+    ctx.fillStyle = '#5b8def';
+    for(var k=0;k<r.objStartCm.length;k++){
+      var ox = padL + r.objStartCm[k]*scale;
+      var w = Math.max(1.5, objW);
+      roundRect(ctx, ox + (objW - w)/2, objTop, w, objBot - objTop, Math.min(2, w/3));
+      ctx.fill();
+    }
+
+    var axisX = [];
+    for(var a=0;a<r.axisCm.length;a++) axisX.push(padL + r.axisCm[a]*scale);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,3]);
+    for(var a2=0;a2<axisX.length;a2++){
+      ctx.beginPath();
+      ctx.moveTo(axisX[a2], objTop - 6);
+      ctx.lineTo(axisX[a2], objBot + 6);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    var showAxisNums = pitchPx >= 18;
+    if(showAxisNums){
+      ctx.font = '600 10px -apple-system, system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for(var n=0;n<axisX.length;n++){
+        ctx.fillStyle = '#5b8def';
+        ctx.beginPath();
+        ctx.arc(axisX[n], axisNumY, 8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillText(String(n+1), axisX[n], axisNumY + 0.5);
+      }
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    for(var g=0;g<r.gapCm.length;g++){
+      var gp = r.gapCm[g];
+      var gx = padL + gp.start*scale;
+      var gw = gp.len*scale;
+      var isRem = gp.type === 'rem';
+      var col = isRem ? '#7a8390' : '#5b8def';
+
+      if(gw >= 12){
+        ctx.save();
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 1;
+        if(isRem) ctx.setLineDash([3,2]);
+        ctx.beginPath();
+        ctx.moveTo(gx + 1, gapDimY);
+        ctx.lineTo(gx + gw - 1, gapDimY);
+        ctx.stroke();
+        ctx.restore();
+        drawArrow(ctx, gx + 1, gapDimY, 1, col);
+        drawArrow(ctx, gx + gw - 1, gapDimY, -1, col);
+      }
+      if(gw >= 16){
+        ctx.fillStyle = col;
+        ctx.font = isRem
+          ? '500 10px -apple-system, system-ui, sans-serif'
+          : '600 11px -apple-system, system-ui, sans-serif';
+        if(!isRem && gw < 30) continue;
+        ctx.fillText((isRem ? 'ост ' : '') + fmt(gp.len), gx + gw/2, gapDimY - 3);
+      }
+    }
+
+    ctx.strokeStyle = '#7aa2ff';
+    ctx.fillStyle = '#7aa2ff';
+    ctx.lineWidth = 1;
+    ctx.textBaseline = 'bottom';
+    ctx.font = '600 11px -apple-system, system-ui, sans-serif';
+    for(var p=0;p<axisX.length-1;p++){
+      var xa = axisX[p], xb = axisX[p+1];
+      var distCm = r.axisCm[p+1] - r.axisCm[p];
+      var distPx = distCm * scale;
+      ctx.beginPath();
+      ctx.moveTo(xa + 1, pitchDimY);
+      ctx.lineTo(xb - 1, pitchDimY);
+      ctx.stroke();
+      drawArrow(ctx, xa + 1, pitchDimY, 1, '#7aa2ff');
+      drawArrow(ctx, xb - 1, pitchDimY, -1, '#7aa2ff');
+      if(distPx >= 40 || p === 0){
+        ctx.fillText(fmt(distCm), (xa + xb)/2, pitchDimY - 3);
+      }
+    }
+
+    var x1 = padL, x2 = padL + availW;
+    ctx.strokeStyle = '#4a5158';
+    ctx.beginPath();
+    ctx.moveTo(x1, totalDimY); ctx.lineTo(x2, totalDimY);
+    ctx.moveTo(x1, totalDimY - 4); ctx.lineTo(x1, totalDimY + 4);
+    ctx.moveTo(x2, totalDimY - 4); ctx.lineTo(x2, totalDimY + 4);
+    ctx.stroke();
+    drawArrow(ctx, x1 + 6, totalDimY, 1, '#4a5158');
+    drawArrow(ctx, x2 - 6, totalDimY, -1, '#4a5158');
+    ctx.fillStyle = '#c8ccd2';
+    ctx.font = '600 11px -apple-system, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(fmt(r.total) + ' см', (x1 + x2)/2, totalDimY - 3);
+  }
+
+  inTotal.addEventListener('input', update);
+  inWidth.addEventListener('input', update);
+  inCount.addEventListener('input', update);
+  inGap.addEventListener('input', update);
+  window.addEventListener('resize', requestDraw);
+  window.addEventListener('orientationchange', requestDraw);
+
+  applyModeVisibility();
+  requestAnimationFrame(function(){ update(); });
+})();
+</script>
+</body>
+</html>

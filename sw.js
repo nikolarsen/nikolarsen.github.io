@@ -1,6 +1,6 @@
 /* Service worker: кэш «сначала своё, потом обновление в фоне».
    Меняете файлы на сайте — поднимите VERSION, старая копия заменится при следующем открытии. */
-const VERSION = 'v1-2026-11-25';
+const VERSION = 'v2-2026-11-25';
 const CACHE = 'stroy-' + VERSION;
 
 const SHELL = [
@@ -12,6 +12,7 @@ const SHELL = [
   'assets/icons/icon-192.png',
   'assets/icons/icon-512.png',
   'assets/icons/apple-touch-icon.png',
+  'tools/layout.html',
   'tools/tile.html',
   'tools/wallpaper.html',
   'tools/concrete.html',
