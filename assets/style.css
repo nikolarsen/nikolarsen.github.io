@@ -73,7 +73,7 @@ a { color: inherit; text-decoration: none; }
 .brand img { width: 30px; height: 30px; border-radius: 8px; }
 .brand span { font-size: 15px; }
 .brand small { display: block; font-weight: 500; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.2; }
-.top__nav { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.top__nav { margin-left: auto; flex: 1 0 auto; justify-content: flex-end; display: flex; align-items: center; gap: 6px; }
 .top__link { font-size: 14px; color: var(--muted); padding: 8px 10px; border-radius: 9px; }
 .top__link:hover { color: var(--text); background: var(--surface-2); }
 
@@ -110,7 +110,7 @@ a { color: inherit; text-decoration: none; }
   background: radial-gradient(circle, rgba(217,97,15,.42) 0%, rgba(217,97,15,0) 62%);
   filter: blur(6px);
 }
-.hero__in { padding: 34px 32px 30px; max-width: 760px; }
+.hero__in { padding: 26px 28px 30px; max-width: 760px; }
 .eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
@@ -121,7 +121,7 @@ a { color: inherit; text-decoration: none; }
 .eyebrow i { width: 6px; height: 6px; border-radius: 50%; background: #f0803a; box-shadow: 0 0 0 4px rgba(240,128,58,.2); }
 h1 {
   font-size: clamp(29px, 6vw, 48px); line-height: 1.04; letter-spacing: -0.03em;
-  margin: 16px 0 0; font-weight: 700;
+  margin: 0; font-weight: 700;
 }
 h1 em { font-style: normal; color: #f0803a; }
 .hero p { color: var(--hero-muted); font-size: clamp(15px, 2.2vw, 18px); margin: 0 0 26px; max-width: 560px; }
@@ -253,3 +253,7 @@ footer { border-top: 1px solid var(--line); margin-top: 60px; padding: 26px 0 40
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto; }
 }
+
+/* компактная кнопка установки в шапке */
+.btn--sm { height: 38px; padding: 0 14px; font-size: 13.5px; border-radius: 10px; box-shadow: none; }
+.btn--sm svg { width: 15px; height: 15px; }
