@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Обои — Строительные web-инструменты</title>
+<meta name="description" content="Калькулятор обоев: рулоны с учётом раппорта, смещения рисунка и дверей с окнами.">
+<meta name="theme-color" content="#0d141d">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top__in">
+    <a class="brand" href="../">
+      <img src="../assets/icons/icon-192.png" alt="" width="30" height="30">
+      <span>Строй-инструменты<small>web · PWA</small></span>
+    </a>
+    <nav class="top__nav">
+      <a class="top__link" href="../#tools">Инструменты</a>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Переключить тему" title="Тема">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap tool">
+  <a class="tool__back" href="../"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Все инструменты</a>
+  <div class="tool__head">
+    <h1>Обои</h1>
+    <p>Сколько рулонов нужно с подгонкой рисунка и с вычетом окон и дверей.</p>
+  </div>
+
+  <div class="panel">
+    <div class="form">
+      <div class="field">
+        <label for="len">Длина комнаты, м</label>
+        <input id="len" type="number" inputmode="decimal" min="0" step="0.1" value="4.5">
+      </div>
+      <div class="field">
+        <label for="wid">Ширина комнаты, м</label>
+        <input id="wid" type="number" inputmode="decimal" min="0" step="0.1" value="3">
+      </div>
+      <div class="field">
+        <label for="h">Высота стен, м</label>
+        <input id="h" type="number" inputmode="decimal" min="1" step="0.05" value="2.7">
+      </div>
+      <div class="field">
+        <label for="open">Окна и двери, м²</label>
+        <input id="open" type="number" inputmode="decimal" min="0" step="0.1" value="4">
+        <small>вычитаются из площади стен</small>
+      </div>
+      <div class="field">
+        <label for="rw">Ширина рулона, м</label>
+        <select id="rw">
+          <option value="0.53" selected>0,53 — обычные</option>
+          <option value="1.06">1,06 — метровые</option>
+          <option value="0.7">0,70 — виниловые «компакт»</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rl">Длина рулона, м</label>
+        <select id="rl">
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="25">25</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rap">Раппорт, см</label>
+        <input id="rap" type="number" inputmode="decimal" min="0" step="1" value="0">
+        <small>0 — без подгонки рисунка</small>
+      </div>
+      <div class="field">
+        <label for="reserve">Запас, %</label>
+        <select id="reserve">
+          <option value="0">0 — впритык</option>
+          <option value="10" selected>10 — обычный</option>
+          <option value="20">20 — много углов и ниш</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="result__head"><b>Результат</b><span>по периметру, полосами — как кроят на деле</span></div>
+      <div class="result__grid">
+        <div class="out"><span>Рулонов</span><b id="oRolls">—</b></div>
+        <div class="out"><span>Полос всего</span><b id="oStrips">—</b></div>
+        <div class="out"><span>Полос из рулона</span><b id="oPerRoll">—</b></div>
+        <div class="out"><span>Площадь стен</span><b id="oArea">—</b></div>
+      </div>
+      <p class="note">Полоса режется по высоте с округлением до раппорта. Окна и двери вычитаются из площади, но полосы над ними всё равно нужны — поэтому итог берётся по полосам, а не по площади.</p>
+    </div>
+  </div>
+</main>
+
+<script src="../assets/app.js" defer></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ['len','wid','h','open','rw','rl','rap','reserve'];
+  function num(id, def) { var v = parseFloat(String($(id).value).replace(',', '.')); return isFinite(v) && v >= 0 ? v : def; }
+  function fmt0(n) { return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }); }
+  function fmt1(n) { return n.toLocaleString('ru-RU', { maximumFractionDigits: 1 }); }
+
+  function calc() {
+    var L = num('len', 0), W = num('wid', 0), H = num('h', 0);
+    var openings = num('open', 0);
+    var rw = num('rw', 0.53), rl = num('rl', 10);
+    var rap = num('rap', 0) / 100;
+    var reserve = num('reserve', 10) / 100;
+
+    var perimeter = 2 * (L + W);
+    var wallArea = Math.max(0, perimeter * H - openings);
+
+    if (perimeter <= 0 || H <= 0) {
+      ['oRolls','oStrips','oPerRoll','oArea'].forEach(function (k) { $(k).textContent = '—'; });
+      return;
+    }
+
+    // длина одной полосы: при раппорте — кратно шагу рисунка
+    var stripLen = H;
+    if (rap > 0) stripLen = Math.ceil(H / rap) * rap;
+    var perRoll = Math.floor(rl / stripLen);
+    var strips = Math.ceil(perimeter / rw);
+    var rolls = perRoll > 0 ? Math.ceil(strips * (1 + reserve) / perRoll) : 0;
+
+    // проверка по площади: не меньше, чем требует площадь с запасом
+    var byArea = Math.ceil(wallArea * (1 + reserve) / (rw * rl));
+
+    $('oRolls').innerHTML = rolls ? fmt0(Math.max(rolls, byArea)) + ' <i>шт</i>' : 'высота больше рулона';
+    $('oStrips').innerHTML = fmt0(strips) + ' <i>шт</i>';
+    $('oPerRoll').innerHTML = perRoll ? fmt0(perRoll) + ' <i>по ' + fmt1(stripLen) + ' м</i>' : '0';
+    $('oArea').innerHTML = fmt1(wallArea) + ' <i>м²</i>';
+  }
+
+  ids.forEach(function (id) { $(id).addEventListener('input', calc); $(id).addEventListener('change', calc); });
+  calc();
+})();
+</script>
+</body>
+</html>

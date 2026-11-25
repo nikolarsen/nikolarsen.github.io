@@ -1,0 +1,27 @@
+{
+  "name": "Строительные web-инструменты",
+  "short_name": "Строй-инструменты",
+  "description": "Калькуляторы для стройки и отделки: плитка, обои, стяжка, краска. Работают офлайн.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0d141d",
+  "theme_color": "#0d141d",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Плитка и клей", "short_name": "Плитка", "url": "./tools/tile.html" },
+    { "name": "Обои", "short_name": "Обои", "url": "./tools/wallpaper.html" },
+    { "name": "Стяжка и бетон", "short_name": "Бетон", "url": "./tools/concrete.html" },
+    { "name": "Краска и грунт", "short_name": "Краска", "url": "./tools/paint.html" }
+  ]
+}
