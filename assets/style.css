@@ -259,3 +259,59 @@ footer { border-top: 1px solid var(--line); margin-top: 60px; padding: 26px 0 40
 .btn--soft { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
 .btn--soft:hover { background: var(--surface-2); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 .btn--sm svg { width: 15px; height: 15px; }
+
+/* ── страницы инструментов: один экран, без прокрутки страницы ── */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.backlink {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 550; color: var(--text);
+  padding: 7px 12px 7px 9px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--surface);
+}
+.backlink:hover { background: var(--surface-2); }
+.backlink svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+body.tool-page {
+  height: 100vh; height: 100dvh; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+body.tool-page .top { position: static; flex: 0 0 auto; }
+body.tool-page .top__in { height: 54px; }
+body.tool-page main.tool {
+  flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
+  padding-top: 10px; padding-bottom: 10px;
+}
+body.tool-page .panel {
+  flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;
+  padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 0 1 auto;
+}
+body.tool-page .form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body.tool-page .form .field small { display: none; }
+body.tool-page .field { gap: 3px; }
+body.tool-page .field label { font-size: 11.5px; }
+body.tool-page .field input, body.tool-page .field select { height: 38px; font-size: 15px; border-radius: 9px; }
+body.tool-page .result { margin-top: 0; padding-top: 0; border-top: 0; }
+body.tool-page .result__head { margin-bottom: 8px; }
+body.tool-page .result__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body.tool-page .out { padding: 10px 12px; }
+body.tool-page .out b { font-size: 17px; }
+body.tool-page .note { display: none; }
+body.tool-page .panel--fill { flex: 1 1 auto; }
+body.tool-page .tp-body { flex: 1 1 auto; min-height: 0; gap: 8px; }
+body.tool-page .tp-canvas { flex: 1 1 auto; min-height: 110px; height: auto; }
+body.tool-page .tp-result { gap: 8px; }
+body.tool-page .tp-out { padding: 9px 11px; }
+body.tool-page .tp-out b { font-size: 19px; }
+body.tool-page .tp-meta { margin-top: 4px; font-size: 11px; }
+body.tool-page .tp-seg button { padding: 8px 5px; font-size: 11.5px; }
+body.tool-page .tp-field { padding: 7px 24px 7px 9px; }
+body.tool-page .tp-field input { font-size: 16px; }
+
+@media (min-width: 900px) {
+  body.tool-page .form { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  body.tool-page .result__grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  body.tool-page .panel { padding: 18px; max-width: 1000px; width: 100%; margin: 0 auto; }
+  body.tool-page .tp-canvas { min-height: 200px; }
+  body.tool-page .tp { max-width: 1000px; }
+}
