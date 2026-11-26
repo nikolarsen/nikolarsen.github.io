@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest-layout.webmanifest">
 <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
-<link rel="stylesheet" href="../assets/style.css?v=20261125q">
+<link rel="stylesheet" href="../assets/style.css?v=20261126a">
 <style>
   .tp { --tp-accent: #2f6fe0; --tp-accent-2: #4d86ea; --tp-canvas: #1a1f24; }
   :root[data-theme="dark"] .tp { --tp-accent: #6f9bff; --tp-accent-2: #94b4ff; }
@@ -138,19 +138,19 @@
 
       <div class="tp-inputs">
         <div class="tp-field">
-          <label id="label-1">Длина участка, см</label>
-          <input id="in-total" type="text" inputmode="decimal" value="200">
+          <label id="label-1">Длина участка, мм</label>
+          <input id="in-total" type="text" inputmode="decimal" value="1000">
           <button type="button" class="tp-clear clear-btn" data-target="in-total" aria-label="Очистить">×</button>
         </div>
         <div class="tp-field">
-          <label>Ширина объекта, см</label>
-          <input id="in-width" type="text" inputmode="decimal" value="10">
+          <label>Ширина объекта, мм</label>
+          <input id="in-width" type="text" inputmode="decimal" value="100">
           <button type="button" class="tp-clear clear-btn" data-target="in-width" aria-label="Очистить">×</button>
         </div>
         <div class="tp-field">
           <label id="label-3">Количество, шт</label>
-          <input id="in-count" type="text" inputmode="numeric" value="8">
-          <input id="in-gap" type="text" inputmode="decimal" value="60" style="display:none">
+          <input id="in-count" type="text" inputmode="numeric" value="3">
+          <input id="in-gap" type="text" inputmode="decimal" value="300" style="display:none">
           <button type="button" class="tp-clear clear-btn" id="clear-3" data-target="in-count" aria-label="Очистить">×</button>
         </div>
       </div>
@@ -158,7 +158,7 @@
   </div>
 </main>
 
-<script src="../assets/app.js?v=20261125q" defer></script>
+<script src="../assets/app.js?v=20261126a" defer></script>
 <script>
 (function(){
   "use strict";
@@ -217,6 +217,38 @@
     c.fill();
   }
 
+  function drawDim(c, x1, x2, y, label, color, dashTopY) {
+    c.save();
+    c.strokeStyle = color;
+    c.lineWidth = 1;
+    
+    if (dashTopY !== null) {
+      c.setLineDash([3,3]);
+      c.beginPath();
+      c.moveTo(x1, dashTopY);
+      c.lineTo(x1, y);
+      c.moveTo(x2, dashTopY);
+      c.lineTo(x2, y);
+      c.stroke();
+      c.setLineDash([]);
+    }
+    
+    c.beginPath();
+    c.moveTo(x1, y);
+    c.lineTo(x2, y);
+    c.stroke();
+    
+    drawArrow(c, x1, y, 1, color);
+    drawArrow(c, x2, y, -1, color);
+    
+    c.fillStyle = '#c8ccd2';
+    c.font = '600 11px -apple-system, system-ui, sans-serif';
+    c.textAlign = 'center';
+    c.textBaseline = 'bottom';
+    c.fillText(label + ' мм', (x1 + x2)/2, y - 3);
+    c.restore();
+  }
+
   function applyModeVisibility(){
     if(calcMode === 'gap'){
       label3.textContent = 'Количество, шт';
@@ -224,7 +256,7 @@
       inGap.style.display = 'none';
       clear3.dataset.target = 'in-count';
     } else {
-      label3.textContent = 'Промежуток, см';
+      label3.textContent = 'Промежуток, мм';
       inCount.style.display = 'none';
       inGap.style.display = '';
       clear3.dataset.target = 'in-gap';
@@ -234,16 +266,12 @@
 
     if(calcMode === 'exact'){
       label1.textContent = (boundsMode === 'between')
-        ? 'Между внутр. кромками, см'
-        : 'Общая длина, см';
-    } else if(edgeMode === 'edges'){
-      label1.textContent = (boundsMode === 'between')
-        ? 'Между крайними кромками, см'
-        : 'Общая длина участка, см';
+        ? 'Между внутр. кромками, мм'
+        : 'Общая длина, мм';
+    } else if(boundsMode === 'between'){
+      label1.textContent = 'Между внутренними кромками, мм';
     } else {
-      label1.textContent = (boundsMode === 'between')
-        ? 'Между внутр. кромками, см'
-        : 'Общая длина участка, см';
+      label1.textContent = 'Общая длина участка, мм';
     }
   }
 
@@ -330,19 +358,11 @@
         gap = free / gc;
         total = inputLen;
       } else {
-        if(edgeMode === 'edges'){
-          if(count < 2) return {ok:false, msg:'Нужно ≥ 2 объектов'};
-          var free1 = inputLen - count * width;
-          if(free1 < 0) return {ok:false, msg:'Объекты не помещаются'};
-          gap = free1 / (count - 1);
-          total = inputLen + 2 * gap;
-        } else {
-          if(count < 2) return {ok:false, msg:'Нужно ≥ 2 объектов'};
-          total = inputLen + 2 * width;
-          var free2 = total - count * width;
-          if(free2 < 0) return {ok:false, msg:'Объекты не помещаются'};
-          gap = free2 / (count - 1);
-        }
+        if(count < 2) return {ok:false, msg:'Нужно ≥ 2 объектов'};
+        var free1 = inputLen - (count - 2) * width;
+        if(free1 < 0) return {ok:false, msg:'Объекты не помещаются'};
+        gap = free1 / (count - 1);
+        total = (edgeMode === 'edges') ? (count * width + (count + 1) * gap) : (count * width + (count - 1) * gap);
       }
 
       var L1 = buildLayout(total, width, count, gap, edgeMode);
@@ -360,15 +380,11 @@
           ? (inputLen - requestedGap) / (width + requestedGap)
           : (inputLen + requestedGap) / (width + requestedGap);
       } else {
-        if(edgeMode === 'edges'){
-          Nf = (inputLen + requestedGap) / (width + requestedGap);
-        } else {
-          total = inputLen + 2 * width;
-          Nf = (total + requestedGap) / (width + requestedGap);
-        }
+        Nf = (inputLen + requestedGap + 2 * width) / (width + requestedGap);
       }
       if(Nf < 1) return {ok:false, msg:'Не помещается ни один объект'};
       count = Math.round(Nf);
+      if(bMode === 'between' && count < 2) count = 2;
       if(count < 1) count = 1;
 
       if(bMode === 'total'){
@@ -376,13 +392,8 @@
         gap = gc2 > 0 ? (inputLen - count * width) / gc2 : 0;
         total = inputLen;
       } else {
-        if(edgeMode === 'edges'){
-          if(count < 2){ gap = 0; total = count * width; }
-          else { gap = (inputLen - count * width) / (count - 1); total = inputLen + 2 * gap; }
-        } else {
-          if(count < 2){ gap = 0; total = count * width; }
-          else { gap = (total - count * width) / (count - 1); }
-        }
+        gap = (inputLen - (count - 2) * width) / (count - 1);
+        total = (edgeMode === 'edges') ? (count * width + (count + 1) * gap) : (count * width + (count - 1) * gap);
       }
       if(gap < 0) return {ok:false, msg:'При таком промежутке не помещается'};
 
@@ -390,7 +401,7 @@
       objStartCm = L2.objStart;
       gapCm = L2.gaps;
     }
-    else { // exact
+    else {
       requestedGap = parseNum(inGap.value);
       if(!isFinite(requestedGap)) return {ok:false, msg:'Введите промежуток'};
       if(requestedGap <= 0) return {ok:false, msg:'Промежуток > 0'};
@@ -466,10 +477,10 @@
 
   function bModeText(r){
     if(r.bMode !== 'between') return '';
-    if(r.edgeMode === 'edges' && !r.exact){
-      return '  ·  между крайними ' + fmt(r.inputLen) + ' см';
+    if(r.exact){
+      return '  ·  между внутр. кромками ' + fmt(r.inputLen) + ' мм';
     }
-    return '  ·  между внутр. кромками ' + fmt(r.inputLen) + ' см';
+    return '  ·  между внутренними кромками ' + fmt(r.inputLen) + ' мм';
   }
 
   function update(){
@@ -487,44 +498,47 @@
       }
 
       if(calcMode === 'gap'){
-        outMain.innerHTML = fmt(r.gap) + ' <small>см</small>';
+        outMain.innerHTML = fmt(r.gap) + ' <small>мм</small>';
       } else {
         outMain.innerHTML = String(r.count) + ' <small>шт</small>';
       }
-      outPitch.innerHTML = fmt(r.pitch) + ' <small>см</small>';
+      outPitch.innerHTML = fmt(r.pitch) + ' <small>мм</small>';
 
       var s;
       if(r.exact){
         if(r.count === 1){
           s = '1 × ' + fmt(r.width) + ' = ' + fmt(r.width) +
-              ' см  ·  по центру ' + fmt(r.total) + ' см';
+              ' мм  ·  по центру ' + fmt(r.total) + ' мм';
         } else if(r.count === 2){
           s = '2 × ' + fmt(r.width) + ' + ' + fmt(r.lastGap) +
-              ' = ' + fmt(r.total) + ' см';
-          s += '  ·  промежуток ' + fmt(r.lastGap) + ' см';
+              ' = ' + fmt(r.total) + ' мм';
+          s += '  ·  промежуток ' + fmt(r.lastGap) + ' мм';
         } else {
           s = r.count + ' × ' + fmt(r.width) +
               ' + ' + (r.count-2) + ' × ' + fmt(r.gap) +
               ' + ' + fmt(r.lastGap) +
-              ' = ' + fmt(r.total) + ' см';
-          s += '  ·  последний промежуток ' + fmt(r.lastGap) + ' см';
+              ' = ' + fmt(r.total) + ' мм';
+          s += '  ·  последний промежуток ' + fmt(r.lastGap) + ' мм';
         }
       } else {
         var gc = (r.edgeMode === 'edges') ? r.count + 1 : r.count - 1;
         s = r.count + ' × ' + fmt(r.width) +
             ' + ' + gc + ' × ' + fmt(r.gap) +
-            ' = ' + fmt(r.total) + ' см';
+            ' = ' + fmt(r.total) + ' мм';
         if(r.requestedGap !== null){
-          s += '  ·  задан ' + fmt(r.requestedGap) + ' см';
+          s += '  ·  задан ' + fmt(r.requestedGap) + ' мм';
           if(Math.abs(r.gap - r.requestedGap) > 0.01){
             s += ' (факт ' + fmt(r.gap) + ')';
-            var alt = (r.gap > r.requestedGap) ? r.count - 1 : r.count + 1;
+            var alt = (r.gap > r.requestedGap) ? r.count + 1 : r.count - 1;
             if(alt >= 1){
-              var altGc = (r.edgeMode === 'edges') ? alt + 1 : alt - 1;
-              if(altGc > 0){
-                var altGap = (r.total - alt*r.width) / altGc;
-                if(altGap > 0) s += '  ·  ' + alt + ' шт → ' + fmt(altGap) + ' см';
+              var altGap;
+              if(r.bMode === 'total'){
+                var altDen = (r.edgeMode === 'edges') ? alt + 1 : alt - 1;
+                if(altDen > 0) altGap = (r.inputLen - alt * r.width) / altDen;
+              } else {
+                if(alt >= 2) altGap = (r.inputLen - (alt - 2) * r.width) / (alt - 1);
               }
+              if(altGap > 0) s += '  ·  ' + alt + ' шт → ' + fmt(altGap) + ' мм';
             }
           } else {
             s += ' (точно)';
@@ -536,7 +550,7 @@
 
       if(r.count > 1){
         s += '  ·  крайние оси ' + fmt(r.axisCm[0]) + '…' + fmt(r.axisCm[r.count-1]) +
-             ' (' + fmt(r.axesSpan) + ' см)';
+             ' (' + fmt(r.axesSpan) + ' мм)';
       } else if(r.count === 1){
         s += '  ·  ось ' + fmt(r.axisCm[0]);
       }
@@ -546,7 +560,7 @@
         outAxes.textContent = 'Оси: ' + r.axisCm.map(fmt).join(' · ');
       } else {
         outAxes.textContent = 'Оси: ' + fmt(r.axisCm[0]) + ' … ' + fmt(r.axisCm[r.count-1]) +
-          '  (шаг ' + fmt(r.pitch) + ' см)';
+          '  (шаг ' + fmt(r.pitch) + ' мм)';
       }
 
       lastError = '';
@@ -589,9 +603,21 @@
     var gapDimY   = 14;
     var axisNumY  = 28;
     var objTop    = 38;
-    var totalDimY = H - 12;
-    var pitchDimY = totalDimY - 30;
-    var objBot    = pitchDimY - 34;
+
+    var dimColor = '#4a5158';
+    var yBase = H - 12;
+    var yPitch, yInner, yFull;
+
+    if (r.bMode === 'between' && r.count >= 2) {
+      yFull  = yBase;
+      yInner = yBase - 24;
+      yPitch = yInner - 30;
+    } else {
+      yFull  = yBase;
+      yPitch = yFull - 30;
+    }
+
+    var objBot = yPitch - 34;
     if(objBot < objTop + 20) objBot = objTop + 20;
 
     ctx.fillStyle = 'rgba(91,141,239,0.06)';
@@ -678,30 +704,26 @@
       var distCm = r.axisCm[p+1] - r.axisCm[p];
       var distPx = distCm * scale;
       ctx.beginPath();
-      ctx.moveTo(xa + 1, pitchDimY);
-      ctx.lineTo(xb - 1, pitchDimY);
+      ctx.moveTo(xa + 1, yPitch);
+      ctx.lineTo(xb - 1, yPitch);
       ctx.stroke();
-      drawArrow(ctx, xa + 1, pitchDimY, 1, '#7aa2ff');
-      drawArrow(ctx, xb - 1, pitchDimY, -1, '#7aa2ff');
+      drawArrow(ctx, xa + 1, yPitch, 1, '#7aa2ff');
+      drawArrow(ctx, xb - 1, yPitch, -1, '#7aa2ff');
       if(distPx >= 40 || p === 0){
-        ctx.fillText(fmt(distCm), (xa + xb)/2, pitchDimY - 3);
+        ctx.fillText(fmt(distCm), (xa + xb)/2, yPitch - 3);
       }
     }
 
-    var x1 = padL, x2 = padL + availW;
-    ctx.strokeStyle = '#4a5158';
-    ctx.beginPath();
-    ctx.moveTo(x1, totalDimY); ctx.lineTo(x2, totalDimY);
-    ctx.moveTo(x1, totalDimY - 4); ctx.lineTo(x1, totalDimY + 4);
-    ctx.moveTo(x2, totalDimY - 4); ctx.lineTo(x2, totalDimY + 4);
-    ctx.stroke();
-    drawArrow(ctx, x1 + 6, totalDimY, 1, '#4a5158');
-    drawArrow(ctx, x2 - 6, totalDimY, -1, '#4a5158');
-    ctx.fillStyle = '#c8ccd2';
-    ctx.font = '600 11px -apple-system, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(fmt(r.total) + ' см', (x1 + x2)/2, totalDimY - 3);
+    if (r.bMode === 'between' && r.count >= 2) {
+      var innerL = padL + (r.objStartCm[0] + r.width) * scale;
+      var innerR = padL + r.objStartCm[r.count - 1] * scale;
+      var innerVal = r.objStartCm[r.count - 1] - (r.objStartCm[0] + r.width);
+      
+      drawDim(ctx, innerL, innerR, yInner, fmt(innerVal), dimColor, objBot);
+      drawDim(ctx, padL, padL + availW, yFull, fmt(r.total), dimColor, objTop - 6);
+    } else {
+      drawDim(ctx, padL, padL + availW, yFull, fmt(r.total), dimColor, objBot);
+    }
   }
 
   inTotal.addEventListener('input', update);

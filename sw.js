@@ -1,6 +1,6 @@
 /* Service worker: кэш «сначала своё, потом обновление в фоне».
    Меняете файлы на сайте — поднимите VERSION, старая копия заменится при следующем открытии. */
-const VERSION = 'v14-2026-11-25';
+const VERSION = 'v15-2026-11-26';
 const CACHE = 'stroy-' + VERSION;
 
 const SHELL = [
