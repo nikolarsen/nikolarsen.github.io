@@ -1,6 +1,6 @@
 /* Service worker: кэш «сначала своё, потом обновление в фоне».
    Меняете файлы на сайте — поднимите VERSION, старая копия заменится при следующем открытии. */
-const VERSION = 'v15-2026-11-26';
+const VERSION = 'v16-2026-11-27';
 const CACHE = 'stroy-' + VERSION;
 
 const SHELL = [
@@ -21,7 +21,9 @@ const SHELL = [
   'tools/tile.html',
   'tools/wallpaper.html',
   'tools/concrete.html',
-  'tools/paint.html'
+  'tools/paint.html',
+  'tools/monterey.html',
+  'tools/manifest-monterey.webmanifest'
 ];
 
 self.addEventListener('install', (e) => {
